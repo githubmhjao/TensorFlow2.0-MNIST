@@ -163,10 +163,6 @@ def train_step(img_input, noise=False):
     # Tune the reconstruction level??
     weight = 1
     
-    if noise:
-        img_input += tf.random.uniform(shape=img_input.shape, minval=0, maxval=2)
-        img_input /= 2
-        
     with tf.GradientTape() as tape:
         z_mean, z_logvar = encoder(img_input)
 
@@ -201,8 +197,9 @@ def latent_map(images, labels):
     return plt.gcf()
     
 
-def sample_save_img(seed, epoch, from_decoder=False):
+def sample_save_img(seed, images, epoch, use_VAE=False):
     
+    # Please create a dir './train_record'
     record_dir_path = './train_record'
     
     # Probe the decoder progress
@@ -210,36 +207,33 @@ def sample_save_img(seed, epoch, from_decoder=False):
     
     for i, ax in zip(seed, axes.flatten()):
         
-        if from_decoder:
-            z_mean, z_logvar = encoder(noise_images[i].reshape(1, Img_W, Img_H, 1))
-
-            eps = tf.random.normal(tf.shape(z_mean), mean=0., stddev=1., dtype=tf.float32)
-            z = z_mean + tf.exp(0.5 * z_logvar) * eps
-
+        if use_VAE:
+            z_mean, z_logvar = encoder(images[i].reshape(1, Img_W, Img_H, 1))
+            z = z_sample(z_mean, z_logvar)
             sample = decoder(z)
             
         else:
-            sample = noise_images[i]
+            sample = images[i]
         
         im = ax.imshow(np.array(sample).reshape(Img_W, Img_H), cmap=plt.cm.gray)
     
     fig.colorbar(im, ax=axes.ravel().tolist())
     
-    if from_decoder:
+    if use_VAE:
         plt.savefig('{}/image_at_epoch_{:04d}.png'.format(record_dir_path, epoch + 1))
     else:
         plt.savefig('{}/ground_truth.png'.format(record_dir_path))
     plt.close()
     
-    if from_decoder:
+    if use_VAE:
         # Probe the encoder progress
-        _ = latent_map(noise_images[:1000], train_labels[:1000])
+        _ = latent_map(images[:1000], train_labels[:1000])
 
         plt.savefig('{}/distri_at_epoch_{:04d}.png'.format(record_dir_path, epoch + 1))
         plt.close()
         
 
-def train(img_set, epochs, noise=False):
+def train(images, dataset, epochs):
     
     train_start = time.time()
     
@@ -247,15 +241,15 @@ def train(img_set, epochs, noise=False):
         
         epoch_start = time.time()
         
-        for image_batch in img_set:
-            train_step(image_batch, noise)
+        for batch in dataset:
+            train_step(batch)
         
         if (epoch + 1) % 2 == 0:
-            sample_save_img(Seed, epoch, from_decoder=True)
+            sample_save_img(Seed, images, epoch, use_VAE=True)
             print ('Time for epoch {} is {:.2f} sec'.format(epoch + 1, time.time()-epoch_start))
             
     # Generate after the final epoch
-    sample_save_img(Seed, epoch)
+    sample_save_img(Seed, images, epoch)
     print('='*30)
     print ('Time for train {} epochs is {:.2f} sec'.format(epoch + 1, time.time()-train_start))
 
@@ -265,7 +259,7 @@ def train(img_set, epochs, noise=False):
 # ---------------- #
 
 Epochs = 30
-train(noise_dataset, Epochs)
+train(noise_images, noise_dataset, Epochs)
 
 # -----------------------------------------#
 #  Training Record                         #
