@@ -158,7 +158,7 @@ optimizer = tf.keras.optimizers.Adam(1e-4)
 # ------------ #
 
 @tf.function
-def train_step(img_input, noise=False):
+def train_step(img_input):
     
     # Tune the reconstruction level??
     weight = 1
