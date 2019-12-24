@@ -39,6 +39,14 @@ Class_Num = 10
 # ------------ #
 
 def preprocess_data(train_images, train_labels, buffer=None, batch=None, shuffle=True):
+    """
+    :param train_images: raw images
+    :param train_labels: labels
+    :param buffer: the buffer size of tf.data.Dataset
+    :param batch: the batch size of tf.data.Dataset
+    :shuffle: whether tf.data.Dataset shuffle
+    :return: preprocessed images, tf.data.Dataset containing preprocessed images and labels
+    """
     
     copy_images = np.array(train_images)
     
