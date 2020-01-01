@@ -147,7 +147,7 @@ custom_activation(_)
 # ------------- #
 
 def cal_gan_loss(target, output):
-    # Because we have activated the logits through custom_activation, from_logits has to be set as True
+    # Because we have activated the logits through custom_activation, from_logits has to be set as False
     cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=False)
     
     if target == 1:
