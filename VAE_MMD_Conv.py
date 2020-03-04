@@ -214,7 +214,7 @@ def sample_save_img(seed, images, epoch, use_VAE=False):
     for i, ax in zip(seed, axes.flatten()):
         
         if use_VAE:
-            z = encoder(images[i].reshape(1, Img_W, Img_H, 1))
+            z = encoder(images[i].reshape(1, ImgW, ImgH, 1))
             sample = decoder(z)
             
         else:
